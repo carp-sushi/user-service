@@ -5,6 +5,5 @@ import Web.Service (runService)
 
 main :: IO ()
 main = do
-  cfg <- loadConfig "user-service.cfg"
-  runService cfg
+  loadConfig "user-service.cfg" >>= runService
 

@@ -57,35 +57,24 @@ getUsers = do
 getUser userId = do
   maybeUser <- runSQL $ P.get userId :: ApiAction (Maybe User)
   case maybeUser of
+    Just user -> json user
     Nothing -> do
       setStatus notFound404
       errorJson 404 "User not found"
-    Just user ->
-      json user
 
 -- Create a new user and return the new user ID
 createUser = do
-  maybeUser <- jsonBody :: ApiAction (Maybe User)
-  case maybeUser of
-    Nothing -> do
-      setStatus badRequest400
-      errorJson 400 "Failed to parse user from request body"
-    Just user -> do
-      userId <- runSQL $ P.insert user
-      setStatus created201
-      json $ object ["result" .= String "success", "id" .= userId]
+  user <- jsonBody'' :: ApiAction User
+  userId <- runSQL $ P.insert user
+  setStatus created201
+  json $ object ["result" .= String "success", "id" .= userId]
 
 -- Update an existing user and return the user ID
 updateUser userId = do
-  maybeUser <- jsonBody :: ApiAction (Maybe User)
-  case maybeUser of
-    Nothing -> do
-      setStatus badRequest400
-      errorJson 400 "Failed to parse user from request body"
-    Just user -> do
-      runSQL $ P.replace userId user
-      setStatus created201
-      json $ object [ "result" .= String "success", "id" .= userId]
+  user <- jsonBody'' :: ApiAction User
+  runSQL $ P.replace userId user
+  setStatus created201
+  json $ object ["result" .= String "success", "id" .= userId]
 
 -- Delete an existing user and send an empty response
 deleteUser userId = do
