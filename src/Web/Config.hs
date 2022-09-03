@@ -22,3 +22,4 @@ loadConfig file = do
   port <- require cfg "port"
   conn <- require cfg "connections"
   return $ Config db port conn
+
