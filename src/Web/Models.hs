@@ -25,6 +25,7 @@ User json
   lastName Text
   email Text
   phoneNumber Text nullable default=[]
+  twitter Text nullable default=[]
   deriving Show
 |]
 

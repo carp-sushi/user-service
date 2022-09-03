@@ -35,7 +35,7 @@ library
       src
   default-extensions:
       OverloadedStrings
-  ghc-options: -Wunused-imports
+  ghc-options: -Wall -Wunused-imports
   build-depends:
       Spock
     , aeson
@@ -57,7 +57,7 @@ executable user-service-exe
       app
   default-extensions:
       OverloadedStrings
-  ghc-options: -Wunused-imports -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wunused-imports -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Spock
     , aeson
@@ -75,7 +75,7 @@ test-suite user-service-test
       test
   default-extensions:
       OverloadedStrings
-  ghc-options: -Wunused-imports -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wunused-imports -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , user-service
