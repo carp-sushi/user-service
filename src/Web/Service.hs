@@ -25,7 +25,7 @@ type Api = SpockM SqlBackend () () ()
 -- The API action type
 type ApiAction a = SpockAction SqlBackend () () a
 
--- Run the database migrations and server the REST api on the given port.
+-- Run database migrations then start the web service.
 runService :: Config -> IO ()
 runService cfg = do
   pool <- runStdoutLoggingT $ createSqlitePool (database cfg) (connections cfg)
@@ -60,21 +60,22 @@ getUser userId = do
     Just user -> json user
     Nothing -> do
       setStatus notFound404
-      errorJson 404 "User not found"
+      json $ object
+        ["result" .= String "error", "error" .= String "User not found"]
 
 -- Create a new user and return the new user ID
 createUser = do
-  user <- jsonBody'' :: ApiAction User
+  user <- decodeJsonBody :: ApiAction User
   userId <- runSQL $ P.insert user
   setStatus created201
-  json $ object ["result" .= String "success", "id" .= userId]
+  json $ object ["result" .= String "success", "userId" .= userId]
 
 -- Update an existing user and return the user ID
 updateUser userId = do
-  user <- jsonBody'' :: ApiAction User
+  user <- decodeJsonBody :: ApiAction User
   runSQL $ P.replace userId user
   setStatus created201
-  json $ object ["result" .= String "success", "id" .= userId]
+  json $ object ["result" .= String "success", "userId" .= userId]
 
 -- Delete an existing user and send an empty response
 deleteUser userId = do
