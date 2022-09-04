@@ -28,9 +28,9 @@ jsonErrorHandler (Status _ message) =
 -- Parse the request body as json and fail with 400 status code on error.
 -- This is a fix for a problem in spock where plain text is rendered in
 -- jsonBody' when decoding JSON fails.
-{-# INLINE decodeJsonBody #-}
-decodeJsonBody :: (MonadIO m, FromJSON a) => ActionCtxT ctx m a
-decodeJsonBody = do
+{-# INLINE jsonBody #-}
+jsonBody :: (MonadIO m, FromJSON a) => ActionCtxT ctx m a
+jsonBody = do
   b <- body
   case eitherDecodeStrict b of
     Right val -> return val
