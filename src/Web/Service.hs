@@ -35,10 +35,13 @@ runService cfg = do
   pool <- runStdoutLoggingT $ createSqlitePool (database cfg) (connections cfg)
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
   spockCfg' <- defaultSpockCfg () (PCPool pool) ()
-  let spockCfg = spockCfg' {spc_errorHandler = jsonErrorHandler}
+  let spockCfg = spockCfg' { 
+    spc_errorHandler = jsonErrorHandler,
+    spc_maxRequestSize = Just (1024 * 1024) -- 1MB
+  }
   runSpock (port cfg) (spock spockCfg api)
 
--- The core spock API
+-- The core spock API for the user service.
 api :: Api
 api = do
   get "status" getStatus
