@@ -9,6 +9,7 @@ import           Control.Monad
 import           Control.Monad.IO.Class
 import           Control.Monad.Logger
 import           Data.Aeson                hiding (json)
+import           Data.Validation           as V
 import qualified Database.Persist          as P
 import           Database.Persist.Sqlite   hiding (delete, get)
 import           Network.HTTP.Types.Status
@@ -18,6 +19,7 @@ import           Web.Spock.Config
 import Web.Config
 import Web.Models
 import Web.Utils
+import Web.Validate
 
 -- The API type
 type Api = SpockM SqlBackend () () ()
@@ -35,7 +37,7 @@ runService cfg = do
   pool <- runStdoutLoggingT $ createSqlitePool (database cfg) (connections cfg)
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
   spockCfg' <- defaultSpockCfg () (PCPool pool) ()
-  let spockCfg = spockCfg' { 
+  let spockCfg = spockCfg' {
     spc_errorHandler = jsonErrorHandler,
     spc_maxRequestSize = Just (1024 * 1024) -- 1MB
   }
@@ -74,21 +76,35 @@ getUser userId = do
     Just user ->
       json user
 
+-- Create/update failure helper
+failBadRequest :: (MonadIO m, ToJSON e) => e -> ActionCtxT ctx m b
+failBadRequest err = do
+  setStatus badRequest400
+  json $ object ["result" .= String "error", "error" .= err]
+
 -- Create a new user and return the new user ID
 createUser :: ActionCtx a
 createUser = do
-  user <- jsonBody :: Action User
-  userId <- runSQL $ P.insert user
-  setStatus created201
-  json $ object ["result" .= String "success", "userId" .= userId]
+  user' <- jsonBody :: Action User
+  case validateUser user' of
+    V.Success user -> do
+      userId <- runSQL $ P.insert user
+      setStatus created201
+      json $ object ["result" .= String "success", "userId" .= userId]
+    V.Failure e ->
+      failBadRequest $ errorMessage e
 
 -- Update an existing user and return the user ID
 updateUser :: UserId -> ActionCtx a
 updateUser userId = do
-  user <- jsonBody :: Action User
-  runSQL $ P.replace userId user
-  setStatus created201
-  json $ object ["result" .= String "success", "userId" .= userId]
+  user' <- jsonBody :: Action User
+  case validateUser user' of
+    V.Success user -> do
+      runSQL $ P.replace userId user
+      setStatus created201
+      json $ object ["result" .= String "success", "userId" .= userId]
+    V.Failure e ->
+      failBadRequest $ errorMessage e
 
 -- Delete an existing user and send an empty response
 deleteUser :: UserId -> ActionCtx ()
