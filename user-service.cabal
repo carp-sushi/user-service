@@ -29,6 +29,7 @@ library
       Web.Models
       Web.Service
       Web.Utils
+      Web.Validate
   other-modules:
       Paths_user_service
   hs-source-dirs:
@@ -47,6 +48,7 @@ library
     , persistent-sqlite
     , persistent-template
     , text
+    , validation
   default-language: Haskell2010
 
 executable user-service-exe

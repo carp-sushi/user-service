@@ -33,6 +33,7 @@ library:
     - persistent-template
     - http-types
     - configurator
+    - validation
 
 executables:
   user-service-exe:
