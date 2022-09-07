@@ -76,12 +76,6 @@ getUser userId = do
     Just user ->
       json user
 
--- Create/update failure helper
-failBadRequest :: (MonadIO m, ToJSON e) => e -> ActionCtxT ctx m b
-failBadRequest err = do
-  setStatus badRequest400
-  json $ object ["result" .= String "error", "error" .= err]
-
 -- Create a new user and return the new user ID
 createUser :: ActionCtx a
 createUser = do
@@ -91,8 +85,9 @@ createUser = do
       userId <- runSQL $ P.insert user
       setStatus created201
       json $ object ["result" .= String "success", "userId" .= userId]
-    V.Failure e ->
-      failBadRequest $ errorMessage e
+    V.Failure e -> do
+      setStatus badRequest400
+      json $ object ["result" .= String "error", "error" .= errorMessage e]
 
 -- Update an existing user and return the user ID
 updateUser :: UserId -> ActionCtx a
@@ -103,8 +98,9 @@ updateUser userId = do
       runSQL $ P.replace userId user
       setStatus created201
       json $ object ["result" .= String "success", "userId" .= userId]
-    V.Failure e ->
-      failBadRequest $ errorMessage e
+    V.Failure e -> do
+      setStatus badRequest400
+      json $ object ["result" .= String "error", "error" .= errorMessage e]
 
 -- Delete an existing user and send an empty response
 deleteUser :: UserId -> ActionCtx ()
