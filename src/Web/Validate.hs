@@ -1,4 +1,8 @@
-module Web.Validate where
+module Web.Validate
+  ( Error(..)
+  , errorMessage
+  , validateUser
+  ) where
 
 import Data.Char (isSpace)
 import Data.Text as T

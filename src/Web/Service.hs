@@ -3,18 +3,24 @@
 {-# LANGUAGE TypeFamilies     #-}
 module Web.Service
   ( runService
+  , service
   ) where
 
-import           Control.Monad
-import           Control.Monad.IO.Class
-import           Control.Monad.Logger
-import           Data.Aeson                hiding (json)
-import           Data.Validation           as V
-import qualified Database.Persist          as P
-import           Database.Persist.Sqlite   hiding (delete, get)
-import           Network.HTTP.Types.Status
-import           Web.Spock                 hiding (jsonBody)
-import           Web.Spock.Config
+import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.Logger
+
+import           Data.Aeson              hiding (json)
+import           Data.Text
+import qualified Data.Validation         as V
+import qualified Database.Persist        as P
+import           Database.Persist.Sqlite hiding (delete, get)
+
+import Network.HTTP.Types.Status
+import Network.Wai
+
+import Web.Spock        hiding (jsonBody)
+import Web.Spock.Config
 
 import Web.Config
 import Web.Models
@@ -27,21 +33,28 @@ type Api = SpockM SqlBackend () () ()
 -- The API action type
 type Action a = SpockAction SqlBackend () () a
 
--- Make type sigs more readable
-type WebStateSql = WebStateM SqlBackend () ()
-type ActionCtx a = ActionCtxT () WebStateSql a
+-- Make type sigs a bit more readable
+type ApiWebState = WebStateM SqlBackend () ()
+type ActionCtx a = ActionCtxT () ApiWebState a
 
 -- Run database migrations then start the web service.
 runService :: Config -> IO ()
 runService cfg = do
-  pool <- runStdoutLoggingT $ createSqlitePool (database cfg) (connections cfg)
+  let db = database cfg
+      conns = connections cfg
+  runSpock (port cfg) (service db conns)
+
+-- Web service definition
+service :: Text -> Int -> IO Middleware
+service dbname conns = do
+  pool <- runNoLoggingT $ createSqlitePool dbname conns
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
   spockCfg' <- defaultSpockCfg () (PCPool pool) ()
   let spockCfg = spockCfg' {
     spc_errorHandler = jsonErrorHandler,
     spc_maxRequestSize = Just (1024 * 1024) -- 1MB
   }
-  runSpock (port cfg) (spock spockCfg api)
+  spock spockCfg api
 
 -- The core spock API for the user service.
 api :: Api
@@ -79,8 +92,8 @@ getUser userId = do
 -- Create a new user and return the new user ID
 createUser :: ActionCtx a
 createUser = do
-  user' <- jsonBody :: Action User
-  case validateUser user' of
+  req <- jsonBody :: Action User
+  case validateUser req of
     V.Success user -> do
       userId <- runSQL $ P.insert user
       setStatus created201
@@ -92,8 +105,8 @@ createUser = do
 -- Update an existing user and return the user ID
 updateUser :: UserId -> ActionCtx a
 updateUser userId = do
-  user' <- jsonBody :: Action User
-  case validateUser user' of
+  req <- jsonBody :: Action User
+  case validateUser req of
     V.Success user -> do
       runSQL $ P.replace userId user
       setStatus created201

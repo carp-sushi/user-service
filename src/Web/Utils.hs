@@ -1,5 +1,9 @@
 {-# LANGUAGE TypeFamilies #-}
-module Web.Utils where
+module Web.Utils
+  ( jsonBody
+  , jsonErrorHandler
+  , runSQL
+  ) where
 
 import Data.Aeson hiding (json)
 
@@ -8,17 +12,18 @@ import Control.Monad.Logger
 import Data.Text.Encoding
 import Database.Persist.Sql
 import Network.HTTP.Types.Status
-import Web.Spock
+
+import Web.Spock hiding (jsonBody)
 
 -- SQL query helper
 {-# INLINE runSQL #-}
 runSQL
   :: (HasSpock m, SpockConn m ~ SqlBackend)
-  => SqlPersistT (LoggingT IO) a
+  => SqlPersistT (NoLoggingT IO) a
   -> m a
 runSQL action =
   runQuery $ \conn ->
-    runStdoutLoggingT $ runSqlConn action conn
+    runNoLoggingT $ runSqlConn action conn
 
 -- Render uncaught errors as JSON
 jsonErrorHandler :: Status -> ActionCtxT () IO ()
