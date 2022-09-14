@@ -1,4 +1,4 @@
-.PHONY: all format build test lint run clean
+.PHONY: all format build test lint run clean watch docker
 
 all: format build test
 
