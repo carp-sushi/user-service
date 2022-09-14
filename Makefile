@@ -14,7 +14,7 @@ test:
 	@stack test
 
 lint:
-	@hlint src/**/*.hs app/*.hs
+	@hlint src/**/*.hs app/*.hs test/*.hs
 
 run:
 	@stack run

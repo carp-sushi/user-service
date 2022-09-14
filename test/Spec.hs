@@ -1,10 +1,9 @@
 module Main where
 
-import Data.Validation
-import Network.Wai
-import Web.Spock       (spockAsApp)
-
-import qualified Data.Text as T
+import qualified Data.Text       as T
+import           Data.Validation
+import           Network.Wai
+import           Web.Spock       (spockAsApp)
 
 import Web.Service
 import Web.Validate
@@ -15,16 +14,22 @@ import Test.Tasty.Hspec
 
 -- A too long chunk of text
 longText :: T.Text
-longText =
-  "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvz"
+longText = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxy" <>
+           "zabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvzz"
 
 -- Create a too long email address
 longEmail :: T.Text
 longEmail = t <> "@" <> t <> t <> "." <> t where t = longText
 
+-- Failure helper
+mkFailure :: T.Text -> T.Text -> Validation Error T.Text
+mkFailure x y = Failure $ Error [x, y]
+
+-- Test middleware
 app :: IO Middleware
 app = service "data/test.db" 5
 
+-- Test http routes
 spec_routes :: Spec
 spec_routes =
   with (spockAsApp app) $ do
@@ -34,61 +39,65 @@ spec_routes =
 
 -- Test validation of first name
 spec_validate_first :: Spec
-spec_validate_first =
+spec_validate_first = do
+  let failure = mkFailure "Invalid first name:"
   describe "validate first name" $ do
     it "should fail when too short" $
-      validateFirstName "" `shouldBe` Failure (Error ["Invalid first name:","cannot be shorter than 1 chars"])
+      validateFirstName "" `shouldBe` failure "cannot be shorter than 1 chars"
     it "should fail when too long" $
-      validateFirstName longText `shouldBe` Failure (Error ["Invalid first name:","cannot be longer than 100 chars"])
+      validateFirstName longText `shouldBe` failure "cannot be longer than 100 chars"
 
 -- Test validation of last name
 spec_validate_last :: Spec
-spec_validate_last =
+spec_validate_last = do
+  let failure = mkFailure "Invalid last name:"
   describe "validate last name" $ do
     it "should fail when too short" $
-      validateLastName "" `shouldBe` Failure (Error ["Invalid last name:","cannot be shorter than 1 chars"])
+      validateLastName "" `shouldBe` failure "cannot be shorter than 1 chars"
     it "should fail when too long" $
-      validateLastName longText `shouldBe` Failure (Error ["Invalid last name:","cannot be longer than 100 chars"])
+      validateLastName longText `shouldBe` failure "cannot be longer than 100 chars"
 
 -- Test validation of email
 spec_validate_email :: Spec
-spec_validate_email =
+spec_validate_email = do
+  let failure = mkFailure "Invalid email address:"
   describe "validate email address" $ do
     it "should fail when too short" $
-      validateEmail "a@" `shouldBe` Failure (Error ["Invalid email address:","cannot be shorter than 3 chars"])
+      validateEmail "a@" `shouldBe` failure "cannot be shorter than 3 chars"
     it "should fail when too long" $
-      validateEmail longEmail `shouldBe` Failure (Error ["Invalid email address:","cannot be longer than 320 chars"])
+      validateEmail longEmail `shouldBe` failure "cannot be longer than 320 chars"
     it "should fail when missing @ char" $
-      validateEmail "abc" `shouldBe` Failure (Error ["Invalid email address:","requires exactly one @ char"])
+      validateEmail "abc" `shouldBe` failure "requires exactly one @ char"
     it "should fail when multiple @ chars found" $
-      validateEmail "a@b@c.com" `shouldBe` Failure (Error ["Invalid email address:","requires exactly one @ char"])
+      validateEmail "a@b@c.com" `shouldBe` failure "requires exactly one @ char"
     it "should fail when space chars found" $
-      validateEmail "a@b c.com" `shouldBe` Failure (Error ["Invalid email address:","cannot contain spaces"])
+      validateEmail "a@b c.com" `shouldBe` failure "cannot contain spaces"
 
 -- Test validation of phone number
 spec_validate_phone :: Spec
-spec_validate_phone =
+spec_validate_phone = do
+  let failure = mkFailure "Invalid phone number:"
   describe "validate phone number" $ do
     it "should fail on invalid chars" $
-      validatePhone "000)555_1234" `shouldBe` Failure (Error ["Invalid phone number:","requires numbers or -"])
+      validatePhone "000)555_1234" `shouldBe` failure "requires numbers or -"
     it "should fail when too short" $
-      validatePhone "55-1234" `shouldBe` Failure (Error ["Invalid phone number:","cannot be shorter than 8 chars"])
+      validatePhone "55-1234" `shouldBe` failure "cannot be shorter than 8 chars"
     it "should fail when too long" $
-      validatePhone "0000-555-1234" `shouldBe` Failure (Error ["Invalid phone number:","cannot be longer than 12 chars"])
-
+      validatePhone "0000-555-1234" `shouldBe` failure "cannot be longer than 12 chars"
 
 -- Test validation of twitter text
 spec_validate_twitter :: Spec
-spec_validate_twitter =
+spec_validate_twitter = do
+  let failure = mkFailure "Invalid twitter handle:"
   describe "validate twitter handle" $ do
     it "should fail on non alpha-numeric chars" $
-      validateTwitter "@us$r@1" `shouldBe` Failure (Error ["Invalid twitter handle:","requires alpha-numerics or _"])
+      validateTwitter "@us$r@1" `shouldBe` failure "requires alpha-numerics or _"
     it "should fail with missing @ prefix" $
-      validateTwitter "user" `shouldBe` Failure (Error ["Invalid twitter handle:","requires prefix @"])
+      validateTwitter "user" `shouldBe` failure "requires prefix @"
     it "should fail when too short" $
-      validateTwitter "@" `shouldBe` Failure (Error ["Invalid twitter handle:","cannot be shorter than 2 chars"])
+      validateTwitter "@" `shouldBe` failure "cannot be shorter than 2 chars"
     it "should fail when too long" $
-      validateTwitter ("@"<>longText) `shouldBe` Failure (Error ["Invalid twitter handle:","cannot be longer than 100 chars"])
+      validateTwitter ("@"<>longText) `shouldBe` failure "cannot be longer than 100 chars"
 
 -- Collect all specs
 allSpecs :: [Spec]
