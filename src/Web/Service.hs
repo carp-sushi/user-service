@@ -10,9 +10,10 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Logger
 
-import           Data.Aeson              hiding (json)
+import           Data.Aeson      hiding (json)
 import           Data.Text
-import qualified Data.Validation         as V
+import qualified Data.Validation as V
+
 import qualified Database.Persist        as P
 import           Database.Persist.Sqlite hiding (delete, get)
 

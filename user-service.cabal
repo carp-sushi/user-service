@@ -84,6 +84,10 @@ test-suite user-service-test
     , base >=4.7 && <5
     , hspec
     , hspec-wai
+    , tasty
+    , tasty-hspec
+    , text
     , user-service
+    , validation
     , wai
   default-language: Haskell2010

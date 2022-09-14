@@ -70,3 +70,7 @@ tests:
     - hspec
     - hspec-wai
     - wai
+    - tasty
+    - tasty-hspec
+    - validation
+    - text

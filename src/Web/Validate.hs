@@ -1,10 +1,15 @@
 module Web.Validate
   ( Error(..)
   , errorMessage
+  , validateFirstName
+  , validateLastName
+  , validateEmail
+  , validatePhone
+  , validateTwitter
   , validateUser
   ) where
 
-import Data.Char (isSpace)
+import Data.Char (isAlphaNum, isNumber, isSpace)
 import Data.Text as T
 
 import Data.Validation
@@ -62,6 +67,24 @@ hasPrefix c t =
     then Success t
     else Failure $ mkError $ "requires prefix " <> c
 
+-- Ensure text contains only numbers or the given char
+numberOr :: Char -> Text -> Validation Error Text
+numberOr c t =
+  if T.all isValidChar t
+    then Success t
+    else Failure $ mkError $ "requires numbers or " <> T.pack [c]
+  where
+    isValidChar cc = cc == c || isNumber cc
+
+-- Ensure text contains only alpha-numerics or the given char
+alphaNumOr :: Char -> Text -> Validation Error Text
+alphaNumOr c t =
+  if T.all isValidChar t
+    then Success t
+    else Failure $ mkError $ "requires alpha-numerics or " <> T.pack [c]
+  where
+    isValidChar cc = cc == c || isAlphaNum cc
+
 -- Email validation
 validateEmail :: Text -> Validation Error Text
 validateEmail email =
@@ -79,7 +102,7 @@ validateFirstName name =
     Failure e -> Failure $ mkError "Invalid first name:" <> e
     Success t -> Success t
   where
-    runValidation t = minLength 1 t *> maxLength 100 t *> noSpaces t
+    runValidation t = minLength 1 t *> maxLength 100 t
 
 -- Last name validation
 validateLastName :: Text -> Validation Error Text
@@ -88,7 +111,7 @@ validateLastName name =
     Failure e -> Failure $ mkError "Invalid last name:" <> e
     Success t -> Success t
   where
-    runValidation t = minLength 1 t *> maxLength 100 t *> noSpaces t
+    runValidation t = minLength 1 t *> maxLength 100 t
 
 -- Phone number validation
 validatePhone :: Text -> Validation Error Text
@@ -97,7 +120,7 @@ validatePhone phone =
     Failure e -> Failure $ mkError "Invalid phone number:" <> e
     Success t -> Success t
   where
-    runValidation t = minLength 8 t *> maxLength 100 t
+    runValidation t = minLength 8 t *> maxLength 12 t *> numberOr '-' t
 
 -- Twitter handle validation
 validateTwitter :: Text -> Validation Error Text
@@ -107,7 +130,7 @@ validateTwitter handle =
     Success t -> Success t
   where
     runValidation t =
-      limitOne "@" t *> hasPrefix "@" t *> minLength 2 t *> maxLength 100 t *> noSpaces t
+      minLength 2 t *> maxLength 100 t *> hasPrefix "@" t *> alphaNumOr '_' (T.drop 1 t)
 
 -- User validation
 validateUser :: User -> Validation Error User
@@ -117,3 +140,4 @@ validateUser user =
         <*> validateEmail     (userEmail user)
         <*> validatePhone     (userPhoneNumber user)
         <*> validateTwitter   (userTwitter user)
+
