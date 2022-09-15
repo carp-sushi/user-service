@@ -129,8 +129,9 @@ validateTwitter handle =
     Failure e -> Failure $ mkError "Invalid twitter handle:" <> e
     Success t -> Success t
   where
+    alphaNumOr_ = alphaNumOr '_'
     runValidation t =
-      minLength 2 t *> maxLength 100 t *> hasPrefix "@" t *> alphaNumOr '_' (T.drop 1 t)
+      minLength 2 t *> maxLength 100 t *> hasPrefix "@" t <* alphaNumOr_ (T.drop 1 t)
 
 -- User validation
 validateUser :: User -> Validation Error User
