@@ -16,8 +16,9 @@ import Test.Tasty.Hspec
 
 -- A too long chunk of text
 longText :: T.Text
-longText = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxy" <>
-           "zabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvzz"
+longText =
+  "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxy"
+    <> "zabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvzz"
 
 -- Create a too long email address
 longEmail :: T.Text
@@ -109,7 +110,7 @@ spec_validate_twitter = do
     it "should fail when too short" $
       validateTwitter "@" `shouldBe` failure "cannot be shorter than 2 chars"
     it "should fail when too long" $
-      validateTwitter ("@"<>longText) `shouldBe` failure "cannot be longer than 100 chars"
+      validateTwitter ("@" <> longText) `shouldBe` failure "cannot be longer than 100 chars"
 
 -- Collect all specs
 allSpecs :: [Spec]
@@ -127,4 +128,3 @@ main :: IO ()
 main = do
   specs <- concat <$> mapM testSpecs allSpecs
   defaultMain (testGroup "User Service Specs" specs)
-

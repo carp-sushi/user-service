@@ -1,19 +1,17 @@
-module Web.Validate
-  ( Error(..)
-  , errorMessage
-  , validateFirstName
-  , validateLastName
-  , validateEmail
-  , validatePhone
-  , validateTwitter
-  , validateUser
-  ) where
+module Web.Validate (
+  Error (..),
+  errorMessage,
+  validateFirstName,
+  validateLastName,
+  validateEmail,
+  validatePhone,
+  validateTwitter,
+  validateUser,
+) where
 
 import Data.Char (isAlphaNum, isNumber, isSpace)
 import Data.Text as T
-
 import Data.Validation
-
 import Web.Models
 
 newtype Error = Error [Text]
@@ -35,16 +33,20 @@ maxLength :: Int -> Text -> Validation Error Text
 maxLength n t =
   if T.length t <= n
     then Success t
-    else Failure $ mkError $
-      "cannot be longer than " <> T.pack (show n) <> " chars"
+    else
+      Failure $
+        mkError $
+          "cannot be longer than " <> T.pack (show n) <> " chars"
 
 -- Ensure text has a required minimum length
 minLength :: Int -> Text -> Validation Error Text
 minLength n t =
   if T.length t >= n
     then Success t
-    else Failure $ mkError $
-      "cannot be shorter than " <> T.pack (show n) <> " chars"
+    else
+      Failure $
+        mkError $
+          "cannot be shorter than " <> T.pack (show n) <> " chars"
 
 -- Ensure text has zero spaces
 noSpaces :: Text -> Validation Error Text
@@ -93,7 +95,10 @@ validateEmail email =
     Success t -> Success t
   where
     runValidation t =
-      limitOne "@" t *> noSpaces t *> minLength 3 t *> maxLength 320 t
+      limitOne "@" t
+        *> noSpaces t
+        *> minLength 3 t
+        *> maxLength 320 t
 
 -- First name validation
 validateFirstName :: Text -> Validation Error Text
@@ -102,7 +107,9 @@ validateFirstName name =
     Failure e -> Failure $ mkError "Invalid first name:" <> e
     Success t -> Success t
   where
-    runValidation t = minLength 1 t *> maxLength 100 t
+    runValidation t =
+      minLength 1 t
+        *> maxLength 100 t
 
 -- Last name validation
 validateLastName :: Text -> Validation Error Text
@@ -111,7 +118,9 @@ validateLastName name =
     Failure e -> Failure $ mkError "Invalid last name:" <> e
     Success t -> Success t
   where
-    runValidation t = minLength 1 t *> maxLength 100 t
+    runValidation t =
+      minLength 1 t
+        *> maxLength 100 t
 
 -- Phone number validation
 validatePhone :: Text -> Validation Error Text
@@ -120,7 +129,10 @@ validatePhone phone =
     Failure e -> Failure $ mkError "Invalid phone number:" <> e
     Success t -> Success t
   where
-    runValidation t = minLength 8 t *> maxLength 12 t *> numberOr '-' t
+    runValidation t =
+      minLength 8 t
+        *> maxLength 12 t
+        *> numberOr '-' t
 
 -- Twitter handle validation
 validateTwitter :: Text -> Validation Error Text
@@ -131,14 +143,17 @@ validateTwitter handle =
   where
     alphaNumOr_ = alphaNumOr '_'
     runValidation t =
-      minLength 2 t *> maxLength 100 t *> hasPrefix "@" t <* alphaNumOr_ (T.drop 1 t)
+      alphaNumOr_ (T.drop 1 t)
+        *> minLength 2 t
+        *> maxLength 100 t
+        *> hasPrefix "@" t
 
 -- User validation
 validateUser :: User -> Validation Error User
 validateUser user =
-   User <$> validateFirstName (userFirstName user)
-        <*> validateLastName  (userLastName user)
-        <*> validateEmail     (userEmail user)
-        <*> validatePhone     (userPhoneNumber user)
-        <*> validateTwitter   (userTwitter user)
-
+  User
+    <$> validateFirstName (userFirstName user)
+    <*> validateLastName (userLastName user)
+    <*> validateEmail (userEmail user)
+    <*> validatePhone (userPhoneNumber user)
+    <*> validateTwitter (userTwitter user)

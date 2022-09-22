@@ -1,26 +1,23 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE TypeFamilies     #-}
-module Web.Service
-  ( runService
-  , service
-  ) where
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
+
+module Web.Service (
+  runService,
+  service,
+) where
 
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Logger
-
-import           Data.Aeson      hiding (json)
-import           Data.Text
+import Data.Aeson hiding (json)
+import Data.Text
 import qualified Data.Validation as V
-
-import qualified Database.Persist        as P
-import           Database.Persist.Sqlite hiding (delete, get)
-
+import qualified Database.Persist as P
+import Database.Persist.Sqlite hiding (delete, get)
 import Network.HTTP.Types.Status
 import Network.Wai
-
-import Web.Spock        hiding (jsonBody)
+import Web.Spock hiding (jsonBody)
 import Web.Spock.Config
 
 import Web.Config
@@ -51,10 +48,11 @@ service dbname conns = do
   pool <- runNoLoggingT $ createSqlitePool dbname conns
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
   spockCfg' <- defaultSpockCfg () (PCPool pool) ()
-  let spockCfg = spockCfg' {
-    spc_errorHandler = jsonErrorHandler,
-    spc_maxRequestSize = Just (1024 * 1024) -- 1MB
-  }
+  let spockCfg =
+        spockCfg'
+          { spc_errorHandler = jsonErrorHandler
+          , spc_maxRequestSize = Just (1024 * 1024) -- 1MB
+          }
   spock spockCfg api
 
 -- The core spock API for the user service.
@@ -85,8 +83,7 @@ getUser userId = do
   case maybeUser of
     Nothing -> do
       setStatus notFound404
-      json $ object
-        ["result" .= String "error", "error" .= String "User not found"]
+      json $ object ["error" .= String "User not found"]
     Just user ->
       json user
 
@@ -98,10 +95,10 @@ createUser = do
     V.Success user -> do
       userId <- runSQL $ P.insert user
       setStatus created201
-      json $ object ["result" .= String "success", "userId" .= userId]
+      json $ object ["userId" .= userId]
     V.Failure e -> do
       setStatus badRequest400
-      json $ object ["result" .= String "error", "error" .= errorMessage e]
+      json $ object ["error" .= errorMessage e]
 
 -- Update an existing user and return the user ID
 updateUser :: UserId -> ActionCtx a
@@ -111,10 +108,10 @@ updateUser userId = do
     V.Success user -> do
       runSQL $ P.replace userId user
       setStatus created201
-      json $ object ["result" .= String "success", "userId" .= userId]
+      json $ object ["userId" .= userId]
     V.Failure e -> do
       setStatus badRequest400
-      json $ object ["result" .= String "error", "error" .= errorMessage e]
+      json $ object ["error" .= errorMessage e]
 
 -- Delete an existing user and send an empty response
 deleteUser :: UserId -> ActionCtx ()
@@ -123,4 +120,3 @@ deleteUser userId = do
   setStatus noContent204
   guard userExists
   runSQL $ P.delete (userId :: UserId)
-

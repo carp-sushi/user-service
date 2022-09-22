@@ -1,26 +1,25 @@
 {-# LANGUAGE TypeFamilies #-}
-module Web.Utils
-  ( jsonBody
-  , jsonErrorHandler
-  , runSQL
-  ) where
 
-import Data.Aeson hiding (json)
+module Web.Utils (
+  jsonBody,
+  jsonErrorHandler,
+  runSQL,
+) where
 
 import Control.Monad.IO.Class
 import Control.Monad.Logger
+import Data.Aeson hiding (json)
 import Data.Text.Encoding
 import Database.Persist.Sql
 import Network.HTTP.Types.Status
-
 import Web.Spock hiding (jsonBody)
 
 -- SQL query helper
 {-# INLINE runSQL #-}
-runSQL
-  :: (HasSpock m, SpockConn m ~ SqlBackend)
-  => SqlPersistT (NoLoggingT IO) a
-  -> m a
+runSQL ::
+  (HasSpock m, SpockConn m ~ SqlBackend) =>
+  SqlPersistT (NoLoggingT IO) a ->
+  m a
 runSQL action =
   runQuery $ \conn ->
     runNoLoggingT $ runSqlConn action conn
@@ -42,4 +41,3 @@ jsonBody = do
     Left err -> do
       setStatus status400
       json $ object ["result" .= String "error", "error" .= err]
-

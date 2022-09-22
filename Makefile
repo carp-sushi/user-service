@@ -3,9 +3,7 @@
 all: format build test
 
 format:
-	@stylish-haskell -i src/**/*.hs
-	@stylish-haskell -i app/*.hs
-	@stylish-haskell -i test/*.hs
+	@fourmolu -q -i src/**/*.hs app/*.hs test/*.hs
 
 build:
 	@stack build

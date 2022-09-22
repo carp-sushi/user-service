@@ -1,15 +1,15 @@
-module Web.Config
-  ( Config(..)
-  , loadConfig
-  ) where
+module Web.Config (
+  Config (..),
+  loadConfig,
+) where
 
 import Data.Configurator
 import Data.Text
 
 -- Service config type
 data Config = Config
-  { database    :: Text
-  , port        :: Int
+  { database :: Text
+  , port :: Int
   , connections :: Int
   }
   deriving (Eq, Ord, Show)
@@ -22,4 +22,3 @@ loadConfig file = do
   port' <- require cfg "port"
   conn <- require cfg "connections"
   return $ Config db port' conn
-
