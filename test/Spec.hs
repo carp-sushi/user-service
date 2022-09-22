@@ -1,18 +1,14 @@
-module Main where
+import Test.Hspec.Wai
+import Test.Tasty
+import Test.Tasty.Hspec
 
 import qualified Data.Text as T
-
 import Data.Validation
 import Network.Wai
-
 import Web.Spock (spockAsApp)
 
 import Web.Service
 import Web.Validate
-
-import Test.Hspec.Wai
-import Test.Tasty
-import Test.Tasty.Hspec
 
 -- A too long chunk of text
 longText :: T.Text
@@ -30,7 +26,7 @@ mkFailure x y = Failure $ Error [x, y]
 
 -- Test middleware
 app :: IO Middleware
-app = service "data/test.db" 5
+app = service "data/test.db" 1
 
 -- Test http routes
 spec_routes :: Spec
