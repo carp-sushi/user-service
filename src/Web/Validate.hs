@@ -69,6 +69,13 @@ hasPrefix c t =
     then Success t
     else Failure $ mkError $ "requires prefix " <> c
 
+-- Ensure text does NOT have a given prefix
+notPrefixOf :: Text -> Text -> Validation Error Text
+notPrefixOf c t =
+  if not (T.isPrefixOf c t)
+    then Success t
+    else Failure $ mkError $ "cannot contain leading " <> c <> " char"
+
 -- Ensure text contains only numbers or the given char
 numberOr :: Char -> Text -> Validation Error Text
 numberOr c t =
@@ -96,6 +103,7 @@ validateEmail email =
   where
     runValidation t =
       limitOne "@" t
+        *> notPrefixOf "@" t
         *> noSpaces t
         *> minLength 3 t
         *> maxLength 320 t
@@ -107,9 +115,7 @@ validateFirstName name =
     Failure e -> Failure $ mkError "Invalid first name:" <> e
     Success t -> Success t
   where
-    runValidation t =
-      minLength 1 t
-        *> maxLength 100 t
+    runValidation t = minLength 1 t *> maxLength 100 t
 
 -- Last name validation
 validateLastName :: Text -> Validation Error Text
@@ -118,9 +124,7 @@ validateLastName name =
     Failure e -> Failure $ mkError "Invalid last name:" <> e
     Success t -> Success t
   where
-    runValidation t =
-      minLength 1 t
-        *> maxLength 100 t
+    runValidation t = minLength 1 t *> maxLength 100 t
 
 -- Phone number validation
 validatePhone :: Text -> Validation Error Text
@@ -129,10 +133,7 @@ validatePhone phone =
     Failure e -> Failure $ mkError "Invalid phone number:" <> e
     Success t -> Success t
   where
-    runValidation t =
-      minLength 8 t
-        *> maxLength 12 t
-        *> numberOr '-' t
+    runValidation t = minLength 8 t *> maxLength 12 t *> numberOr '-' t
 
 -- Twitter handle validation
 validateTwitter :: Text -> Validation Error Text

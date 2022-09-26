@@ -77,6 +77,8 @@ spec_validate_email = do
       validateEmail "a@b@c.com" `shouldBe` failure "requires exactly one @ char"
     it "should fail when space chars found" $
       validateEmail "a@b c.com" `shouldBe` failure "cannot contain spaces"
+    it "should fail when a leading @ is found" $
+      validateEmail "@email.com" `shouldBe` failure "cannot contain leading @ char"
 
 -- Test validation of phone number
 spec_validate_phone :: Spec
