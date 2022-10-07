@@ -27,7 +27,7 @@ runSQL action =
 -- Render uncaught errors as JSON
 jsonErrorHandler :: Status -> ActionCtxT () IO ()
 jsonErrorHandler (Status _ message) =
-  json $ object ["result" .= String "error", "error" .= decodeUtf8 message]
+  json $ object ["error" .= decodeUtf8 message]
 
 -- Parse the request body as json and fail with 400 status code on error.
 -- This is a fix for a problem in spock where plain text is rendered in
@@ -40,4 +40,4 @@ jsonBody = do
     Right val -> return val
     Left err -> do
       setStatus status400
-      json $ object ["result" .= String "error", "error" .= err]
+      json $ object ["error" .= err]
