@@ -1,3 +1,4 @@
+import Test.Hspec
 import Test.Hspec.Wai
 import Test.Tasty
 import Test.Tasty.Hspec
