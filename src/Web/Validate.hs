@@ -70,8 +70,8 @@ hasPrefix c t =
     else Failure $ mkError $ "requires prefix " <> c
 
 -- Ensure text does NOT have a given prefix
-notPrefixOf :: Text -> Text -> Validation Error Text
-notPrefixOf c t =
+noLeading :: Text -> Text -> Validation Error Text
+noLeading c t =
   if not (T.isPrefixOf c t)
     then Success t
     else Failure $ mkError $ "cannot contain leading " <> c <> " char"
@@ -103,7 +103,7 @@ validateEmail email =
   where
     runValidation t =
       limitOne "@" t
-        *> notPrefixOf "@" t
+        *> noLeading "@" t
         *> noSpaces t
         *> minLength 3 t
         *> maxLength 320 t

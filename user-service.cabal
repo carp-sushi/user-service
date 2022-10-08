@@ -1,27 +1,10 @@
+name: user-service
+version: 0.1.0.0
+license: BSD3
+license-file:LICENSE
+build-type: Simple
 cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.34.4.
---
--- see: https://github.com/sol/hpack
-
-name:           user-service
-version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/carp-sushi/user-service#readme>
-homepage:       https://github.com/carp-sushi/user-service#readme
-bug-reports:    https://github.com/carp-sushi/user-service/issues
-author:         Carp Sushi
-maintainer:     105142707+carp-sushi@users.noreply.github.com
-copyright:      Copyright 2022-present, the original author(s)
-license:        BSD3
-license-file:   LICENSE
-build-type:     Simple
-extra-source-files:
-    README.md
-    CHANGELOG.md
-
-source-repository head
-  type: git
-  location: https://github.com/carp-sushi/user-service
+extra-source-files: README.md
 
 library
   exposed-modules:
@@ -30,12 +13,8 @@ library
       Web.Service
       Web.Utils
       Web.Validate
-  other-modules:
-      Paths_user_service
-  hs-source-dirs:
-      src
-  default-extensions:
-      OverloadedStrings
+  hs-source-dirs: src
+  default-extensions: OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       Spock
@@ -54,12 +33,8 @@ library
 
 executable user-service-exe
   main-is: Main.hs
-  other-modules:
-      Paths_user_service
-  hs-source-dirs:
-      app
-  default-extensions:
-      OverloadedStrings
+  hs-source-dirs: app
+  default-extensions: OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Spock
@@ -72,12 +47,8 @@ executable user-service-exe
 test-suite user-service-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
-  other-modules:
-      Paths_user_service
-  hs-source-dirs:
-      test
-  default-extensions:
-      OverloadedStrings
+  hs-source-dirs: test
+  default-extensions: OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Spock

@@ -1,27 +1,22 @@
-.PHONY: all format build test lint run clean watch docker
+.PHONY: all format build test lint run clean build-docker run-docker
 
-all: format build test
+all: format build lint
 
 format:
-	@fourmolu -q -i src/**/*.hs app/*.hs test/*.hs
+	fourmolu -q -i src/**/*.hs app/*.hs test/*.hs
 
 build:
-	@stack build
-
-test:
-	@stack test
+	nix-build
 
 lint:
-	@hlint src/**/*.hs app/*.hs test/*.hs
-
-run:
-	@stack run
+	hlint src/**/*.hs app/*.hs test/*.hs
 
 clean:
-	@stack purge
+	rm -rf result image
 
-watch:
-	ghcid -T :main
+build-docker:
+	nix-build --attr docker-image release.nix -o image
+	docker load -i ./image
 
-docker:
-	@docker build -t carp-sushi/user-service .
+run-docker:
+	docker run -it --rm -v $(CURDIR)/data:/data -v $(CURDIR)/user-service.cfg:/user-service.cfg -p 8080:8080 carp-sushi/user-service

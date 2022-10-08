@@ -17,7 +17,6 @@ mkDerivation {
   testHaskellDepends = [
     base hspec hspec-wai Spock tasty tasty-hspec text validation wai
   ];
-  homepage = "https://github.com/carp-sushi/user-service#readme";
   license = lib.licenses.bsd3;
   mainProgram = "user-service-exe";
 }
