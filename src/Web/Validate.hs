@@ -109,22 +109,21 @@ validateEmail email =
         *> maxLength 320 t
 
 -- First name validation
-validateFirstName :: Text -> Validation Error Text
-validateFirstName name =
+validateName :: Text -> Text -> Validation Error Text
+validateName msg name =
   case runValidation (T.strip name) of
-    Failure e -> Failure $ mkError "Invalid first name:" <> e
+    Failure e -> Failure $ mkError msg <> e
     Success t -> Success t
   where
     runValidation t = minLength 1 t *> maxLength 100 t
 
+-- First name validation
+validateFirstName :: Text -> Validation Error Text
+validateFirstName name = validateName "Invalid first name:" name
+
 -- Last name validation
 validateLastName :: Text -> Validation Error Text
-validateLastName name =
-  case runValidation (T.strip name) of
-    Failure e -> Failure $ mkError "Invalid last name:" <> e
-    Success t -> Success t
-  where
-    runValidation t = minLength 1 t *> maxLength 100 t
+validateLastName name = validateName "Invalid last name:" name
 
 -- Phone number validation
 validatePhone :: Text -> Validation Error Text
